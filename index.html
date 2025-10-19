@@ -15,7 +15,10 @@
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 
-<style>
+    <script type="text/javascript"
+        src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js">
+    </script>
+    <style>
         /* Base Body */
         body {
             font-family: 'VT323', monospace;
@@ -30,7 +33,7 @@
         @keyframes grain { 0%, 100% { transform: translate(0, 0); } 10% { transform: translate(-2%, -4%); } 30% { transform: translate(3%, -1%); } 50% { transform: translate(5%, 3%); } 70% { transform: translate(-3%, 2%); } 90% { transform: translate(1%, -3%); } }
         body::before {
             content: ""; position: fixed; top: -100%; left: -100%; width: 300%; height: 300%;
-            background-image: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADIAAAAyCAYAAAAeP4ixAAAAT0lEQVR42u3PMQ0AAAgDoPk33ssONGCBvQOX0B8sQEAABIAACAAAEAAABIAABIAABIAABIAABIAAEAAABIAABIAABIAABIAABIAAEAAAEAAAIAAAYt0BwL4mHdUAAAAASUVORK5CYII=");
+            background-image: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADIAAAAyCAYAAAAeP4ixAAAAT0lEQVR42u3PMQ0AAAgDoPk33ssONGCBvQOX0B8sQEAABIAACAAAEAAABIAABIAABIAABIAABIAAEAAABIAABIAABIAABIAABIAABIAAEAAAIAAAYt0BwL4mHdUAAAAASUVORK5CYII=");
             animation: grain 8s steps(10) infinite; opacity: 0.05; z-index: -2; pointer-events: none; /* Pushed back */
         }
         
@@ -186,7 +189,7 @@
         button:hover { transform: scale(1.05); filter: brightness(1.1); }
         button:active { transform: scale(0.98); }
 
-    </style>
+</style>
 </head>
 <body>
     {/* Background overlay */}
@@ -197,6 +200,14 @@
     <div id="root"></div>
 
     <script type="text/babel">
+        /* ===============================================================
+         !!! IMPORTANT !!!
+         REPLACE THE PLACEHOLDER BELOW WITH YOUR EMAILJS PUBLIC KEY
+         (Found in your EmailJS Account settings)
+         ===============================================================
+        */
+        emailjs.init("BVDIHmf9Ky8OUg5dL"); 
+
         const { useState, useEffect, useRef, Fragment } = React;
 
         // --- Data (User's updated version) ---
@@ -348,8 +359,6 @@
         }
         // --- END MODIFIED: Hero Component ---
 
-        // --- Other Components (User's updated versions) ---
-        
         // --- MODIFIED: About Component ---
         function About() { 
             return ( 
@@ -436,26 +445,50 @@
         // --- END MODIFIED: Achievements Component ---
 
         // === MODIFIED Contact Component ===
+// === MODIFIED Contact Component ===
         function Contact() {
-            // NEW: Add state to hold form input
+            const [name, setName] = useState('');           // <-- NEW
             const [fromEmail, setFromEmail] = useState('');
             const [message, setMessage] = useState('');
+            const [status, setStatus] = useState('Send Message');
 
-            // NEW: Handle form submission
             const handleSubmit = (e) => {
-                e.preventDefault(); // Prevent page reload
-                
-                const toEmail = "kartavyadev3@gmail.com";
-                const subject = "Contact Form Submission from your Portfolio";
-                
-                // Format the body of the email
-                const body = `Message from: ${fromEmail}\n\n${message}`;
+                e.preventDefault(); 
+                setStatus('Sending...'); 
 
-                // Create the mailto link
-                const mailtoLink = `mailto:${toEmail}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+                // These are the variables from your EmailJS template
+                const templateParams = {
+                    name: name,           // <-- NEW
+                    from_email: fromEmail,
+                    message: message,
+                };
 
-                // Open the user's default email client
-                window.location.href = mailtoLink;
+                /* ===============================================================
+                 !!! IMPORTANT !!!
+                 REPLACE THE 2 PLACEHOLDERS BELOW WITH YOUR
+                 EMAILJS SERVICE ID AND TEMPLATE ID
+                 ===============================================================
+                */
+                emailjs.send('service_aye3zpg', 'template_5kv8jxn', templateParams)
+                    .then((response) => {
+                        console.log('SUCCESS!', response.status, response.text);
+                        setStatus('Message Sent!');
+                        setName('');      // <-- NEW
+                        setFromEmail('');
+                        setMessage('');
+                        setTimeout(() => setStatus('Send Message'), 3000);
+                    }, (err) => {
+                        console.log('FAILED...', err);
+                        setStatus('Failed. Try Again.');
+                        setTimeout(() => setStatus('Send Message'), 3000);
+                    });
+            };
+            
+            const handleReset = () => {
+                 setName('');      // <-- NEW
+                 setFromEmail('');
+                 setMessage('');
+                 setStatus('Send Message');
             };
 
             return ( 
@@ -463,32 +496,46 @@
                     <div className="window max-w-4xl mx-auto"> 
                         <div className="title-bar"><div className="title-bar-text">New Message - Email Client</div></div> 
                         <div className="window-body p-5"> 
-                            {/* MODIFIED: Added onSubmit handler and state management */}
-                            <form onSubmit={handleSubmit}> 
+                            <form onSubmit={handleSubmit} onReset={handleReset}> 
                                 <div className="field-row-stacked mb-4">
-                                    {/* MODIFIED: Responsive font size */}
-                                    <label htmlFor="name" className="text-lg md:text-xl">To:</label>
-                                    <input id="name" type="text" value="Kartavya Dev" readOnly style={{ color: "#000" }} />
+                                    <label htmlFor="to_name" className="text-lg md:text-xl">To:</label>
+                                    <input id="to_name" type="text" value="Kartavya Dev" readOnly style={{ color: "#000" }} />
+                                </div>
+
+                                {/* === NEW NAME FIELD === */}
+                                <div className="field-row-stacked mb-4">
+                                    <label htmlFor="from_name" className="text-lg md:text-xl">Your Name:</label>
+                                    <input 
+                                        id="from_name" 
+                                        name="from_name" 
+                                        type="text" 
+                                        placeholder="Your Name"
+                                        required 
+                                        value={name} 
+                                        onChange={(e) => setName(e.target.value)} 
+                                    />
                                 </div> 
+                                {/* === END NEW NAME FIELD === */}
+
                                 <div className="field-row-stacked mb-4">
-                                    {/* MODIFIED: Responsive font size */}
-                                    <label htmlFor="email" className="text-lg md:text-xl">From:</label>
+                                    <label htmlFor="email" className="text-lg md:text-xl">From (Your Email):</label>
                                     <input 
                                         id="email" 
                                         name="email" 
                                         type="email" 
+                                        placeholder="your-email@example.com"
                                         required 
                                         value={fromEmail} 
                                         onChange={(e) => setFromEmail(e.target.value)} 
                                     />
                                 </div> 
                                 <div className="field-row-stacked mb-4">
-                                    {/* MODIFIED: Responsive font size */}
                                     <label htmlFor="message" className="text-lg md:text-xl">Message:</label>
                                     <textarea 
                                         id="message" 
                                         name="message" 
                                         rows="6" 
+                                        placeholder="Hello Kartavya, I saw your portfolio and..."
                                         required
                                         value={message}
                                         onChange={(e) => setMessage(e.target.value)}
@@ -496,14 +543,15 @@
                                 </div> 
                                 <div className="flex justify-end gap-3">
                                     <button type="reset">Cancel</button>
-                                    <button type="submit" className="font-bold">Send Message</button>
+                                    <button type="submit" className="font-bold" disabled={status === 'Sending...'}>
+                                        {status}
+                                    </button>
                                 </div> 
                             </form> 
                             <div className="sunken-panel text-center p-2 mt-6"> 
-                                {/* MODIFIED: Responsive font size */}
                                 <p className="text-base md:text-lg">
                                     Find me on: <a href="https://github.com/devokdev" target="_blank" className="text-cyan-400 underline mx-2">GitHub</a> | 
-                                    <a href="#" target="_blank" className="text-cyan-400 underline mx-2">LinkedIn</a> | 
+                                    <a href="https://www.linkedin.com/in/kartavya-dev-89aa87291/" target="_blank" className="text-cyan-400 underline mx-2">LinkedIn</a> | 
                                     <a href="mailto:kartavyadev3@gmail.com" className="text-cyan-400 underline ml-2">Email</a>
                                 </p> 
                             </div> 
