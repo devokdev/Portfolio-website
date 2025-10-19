@@ -200,12 +200,7 @@
     <div id="root"></div>
 
     <script type="text/babel">
-        /* ===============================================================
-         !!! IMPORTANT !!!
-         REPLACE THE PLACEHOLDER BELOW WITH YOUR EMAILJS PUBLIC KEY
-         (Found in your EmailJS Account settings)
-         ===============================================================
-        */
+    
         emailjs.init("BVDIHmf9Ky8OUg5dL"); 
 
         const { useState, useEffect, useRef, Fragment } = React;
@@ -215,9 +210,9 @@
         const achievementsData = [ { id: 1, text: "4x National Hackathon Finalist" }, { id: 2, text: "1x Hackathon Winner at IIT Ropar" }, { id: 3, text: "Finalist in Google's Guinness World Record Gen AI Hackathon" }, { id: 4, text: "Completed Project Internship @ Sopra Steria" } ];
 
         // --- ASCII Racer Game Component (User's settings + harder) ---
-        function AsciiGame() {
-            const [renderString, setRenderString] = useState("Loading Game..."); const gameLoopRef = useRef(null); const playerRef = useRef({ x: 15, char: '^' }); const obstaclesRef = useRef([]); const frameRef = useRef(0); const scoreRef = useRef(0); const gameSpeedRef = useRef(5); const isGameOverRef = useRef(false); const GAME_WIDTH = 30; const GAME_HEIGHT = 12;
-            const resetGame = () => { isGameOverRef.current = false; playerRef.current = { x: Math.floor(GAME_WIDTH / 2), char: '^' }; obstaclesRef.current = []; frameRef.current = 0; scoreRef.current = 0; gameSpeedRef.current = 5; if (gameLoopRef.current) cancelAnimationFrame(gameLoopRef.current); gameLoopRef.current = requestAnimationFrame(updateGame); };
+     function AsciiGame() {
+            const [renderString, setRenderString] = useState("Loading Game..."); const gameLoopRef = useRef(null); const playerRef = useRef({ x: 15, char: '▲' }); const obstaclesRef = useRef([]); const frameRef = useRef(0); const scoreRef = useRef(0); const gameSpeedRef = useRef(5); const isGameOverRef = useRef(false); const GAME_WIDTH = 30; const GAME_HEIGHT = 12;
+            const resetGame = () => { isGameOverRef.current = false; playerRef.current = { x: Math.floor(GAME_WIDTH / 2), char: '▲' }; obstaclesRef.current = []; frameRef.current = 0; scoreRef.current = 0; gameSpeedRef.current = 5; if (gameLoopRef.current) cancelAnimationFrame(gameLoopRef.current); gameLoopRef.current = requestAnimationFrame(updateGame); };
             const centerText = (text, width) => { const padding = Math.max(0, Math.floor((width - text.length) / 2)); return ' '.repeat(padding) + text; };
             const buildRenderString = () => { let grid = Array(GAME_HEIGHT).fill().map(() => Array(GAME_WIDTH).fill(' ')); const player = playerRef.current; if (player.x >= 0 && player.x < GAME_WIDTH) grid[GAME_HEIGHT - 1][player.x] = player.char; obstaclesRef.current.forEach(obs => { if (obs.y >= 0 && obs.y < GAME_HEIGHT && obs.x >= 0 && obs.x < GAME_WIDTH) grid[obs.y][obs.x] = obs.char; }); const scoreLine = `Score: ${scoreRef.current} | Use ArrowLeft/Right`; let output = centerText(scoreLine, GAME_WIDTH + 2) + '\n'; output += `+${'-'.repeat(GAME_WIDTH)}+\n`; output += grid.map(row => `|${row.join('')}|`).join('\n'); output += `\n+${'-'.repeat(GAME_WIDTH)}+\n`; if (isGameOverRef.current) { const gameOverLine1 = "GAME OVER!"; const gameOverLine2 = "Press 'R' to Restart"; output += `\n${centerText(gameOverLine1, GAME_WIDTH + 2)}\n${centerText(gameOverLine2, GAME_WIDTH + 2)}`; } return output; };
             const updateGame = () => { 
@@ -237,10 +232,6 @@
                     obstaclesRef.current = newObstacles; 
                     if (frameRef.current % (gameSpeedRef.current * 2) === 0) { 
                         obstaclesRef.current.push({ x: Math.floor(Math.random() * GAME_WIDTH), y: 0, char: 'O' }); 
-                    }
-                    // Added second spawner back for difficulty
-                    if (frameRef.current % (gameSpeedRef.current * 3) === 0) { 
-                        obstaclesRef.current.push({ x: Math.floor(Math.random() * GAME_WIDTH), y: 0, char: '*' });
                     }
                 } 
                 setRenderString(buildRenderString()); 
