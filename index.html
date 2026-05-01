@@ -14,687 +14,754 @@
     <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/framer-motion@10.16.4/dist/framer-motion.js"></script>
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
 
     <script type="text/javascript"
         src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js">
     </script>
     <style>
-        /* Base Body */
+        /* Base Body & Layout */
+        :root {
+            --win-bg: #c0c0c0;
+            --win-shadow: inset 1px 1px 0px 1px #ffffff, inset 0 0 0 1px #868a8e, 1px 1px 0 1px #000000;
+        }
+
         body {
             font-family: 'VT323', monospace;
-            cursor: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAANlJREFUOE+tkUsKxCAUhUfBBSzEFTzFNcxFCzEHF/HWQ3iCpVixlQvYwqX4AybyMzGaN/8lR8Lg6KaPTpIkmc2IBIinEqAAmkEEEnVp813LpLFx+AowBLADsAFwzuyfUoBb0ALgTd8fAQ7AJNkdAMESYAFPcAmcAXqnGWNFEfGgEwOADVnBrAhAIQkAW3VLv8NwwHkABjYACqAkyiKjDbk/jKcb/ip2IuAAWAFmKmeAroAmg3mboLqAEOgD2kXaAfoHlhVUpzo+Cj8BHIAnA/F+rmw+gPziJt2/eEGtAAAAAElFTSuQmCC'), auto;
-            overflow-x: hidden;
-            transition: background-color 0.5s ease;
-            position: relative; 
-            min-height: 100vh; 
+            cursor: auto; /* Fallback to standard cursor for better compatibility */
+            overflow: hidden; /* Desktop doesn't scroll, windows do */
+            background-color: #008080; /* Classic Windows Teal */
+            height: 100vh;
+            width: 100vw;
+            margin: 0;
+            user-select: none;
         }
 
-        /* Layer 1: CRT Noise */
-        @keyframes grain { 0%, 100% { transform: translate(0, 0); } 10% { transform: translate(-2%, -4%); } 30% { transform: translate(3%, -1%); } 50% { transform: translate(5%, 3%); } 70% { transform: translate(-3%, 2%); } 90% { transform: translate(1%, -3%); } }
-        body::before {
-            content: ""; position: fixed; top: -100%; left: -100%; width: 300%; height: 300%;
-            background-image: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADIAAAAyCAYAAAAeP4ixAAAAT0lEQVR42u3PMQ0AAAgDoPk33ssONGCBvQOX0B8sQEAABIAACAAAEAAABIAABIAABIAABIAABIAAEAAABIAABIAABIAABIAABIAABIAAEAAAIAAAYt0BwL4mHdUAAAAASUVORK5CYII=");
-            animation: grain 8s steps(10) infinite; opacity: 0.05; z-index: -2; pointer-events: none; /* Pushed back */
-        }
-        
-        /* Layer 2: Base Conic Pattern Overlay */
-        #background-overlay {
+        #error-display {
+            display: none;
             position: fixed;
-            inset: 0; 
-            z-index: -3; /* Farthest back */
-            pointer-events: none; 
-            background-size: 50px 50px; /* Size for the conic gradient */
-            opacity: 0.1; /* Dimmer base pattern */
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: #ff0000;
+            color: white;
+            padding: 20px;
+            border: 4px double white;
+            z-index: 10001;
+            font-family: 'Courier New', monospace;
+            max-width: 80%;
+            white-space: pre-wrap;
         }
 
-        /* --- NEW: Layer 3: Pixel Rain Canvas --- */
-        #pixel-rain-canvas {
+        /* --- CRT EFFECT LAYER --- */
+        #crt-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            pointer-events: none !important;
+            z-index: 9999;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.1) 50%), 
+                        linear-gradient(90deg, rgba(255, 0, 0, 0.03), rgba(0, 255, 0, 0.01), rgba(0, 0, 255, 0.03));
+            background-size: 100% 3px, 3px 100%;
+            opacity: 0.8;
+        }
+
+        #crt-vignette {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            pointer-events: none !important;
+            z-index: 9998;
+            background: radial-gradient(circle, transparent 60%, rgba(0,0,0,0.4) 100%);
+            box-shadow: inset 0 0 100px rgba(0,0,0,0.5);
+        }
+
+        /* Flicker Animation */
+        @keyframes flicker {
+            0% { opacity: 0.97; } 5% { opacity: 0.95; } 10% { opacity: 0.9; } 15% { opacity: 0.95; }
+            20% { opacity: 0.9; } 25% { opacity: 0.98; } 30% { opacity: 0.95; } 35% { opacity: 0.9; }
+            40% { opacity: 0.95; } 45% { opacity: 0.9; } 50% { opacity: 0.98; } 55% { opacity: 0.95; }
+            60% { opacity: 0.9; } 65% { opacity: 0.95; } 70% { opacity: 0.9; } 75% { opacity: 0.98; }
+            80% { opacity: 0.95; } 85% { opacity: 0.9; } 90% { opacity: 0.95; } 95% { opacity: 0.9; } 100% { opacity: 0.98; }
+        }
+        .crt-flicker { animation: flicker 0.15s infinite; }
+
+        /* --- THEMES --- */
+        .dark-theme { background-color: #1a1a1a; color: #b0c4de; }
+        .light-theme { background-color: #008080; color: #000; }
+
+        /* Window Styling */
+        .window {
+            position: absolute;
+            min-width: 300px;
+            box-shadow: var(--win-shadow);
+            background: #c0c0c0;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .dark-theme .window {
+            background: rgba(26, 26, 26, 0.9);
+            border: 2px solid #00ffcc;
+            box-shadow: 0 0 15px rgba(0, 255, 204, 0.4);
+            backdrop-filter: blur(8px);
+            color: #b0c4de;
+        }
+
+        .title-bar {
+            cursor: grab;
+            user-select: none;
+            padding: 3px 5px 3px 3px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .title-bar:active { cursor: grabbing; }
+
+        .dark-theme .title-bar {
+            background: linear-gradient(90deg, #000050, #0a528d);
+        }
+
+        /* Desktop Icons */
+        .desktop-icon {
+            width: 80px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            padding: 10px;
+            color: white;
+            text-shadow: 1px 1px 2px black;
+            cursor: pointer;
+            transition: background 0.2s;
+            border: 1px solid transparent;
+        }
+        .desktop-icon:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px dotted white;
+        }
+        .desktop-icon img, .desktop-icon i {
+            width: 32px;
+            height: 32px;
+            margin-bottom: 4px;
+        }
+
+        /* Taskbar */
+        .taskbar {
+            position: fixed;
+            bottom: 0; left: 0; width: 100%;
+            height: 40px;
+            background: #c0c0c0;
+            border-top: 2px solid white;
+            display: flex;
+            align-items: center;
+            padding: 2px 5px;
+            z-index: 1000;
+            box-shadow: inset 1px 1px 0px 1px #ffffff;
+        }
+        .dark-theme .taskbar {
+            background: #111;
+            border-top: 2px solid #00ffcc;
+            box-shadow: 0 -2px 10px rgba(0, 255, 204, 0.3);
+        }
+
+        .start-button {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            font-weight: bold;
+            padding: 2px 10px !important;
+            height: 32px;
+        }
+
+        .taskbar-divider {
+            width: 2px;
+            height: 24px;
+            background: #808080;
+            border-right: 1px solid white;
+            margin: 0 8px;
+        }
+
+        .tray {
+            margin-left: auto;
+            border: 2px solid;
+            border-color: #808080 white white #808080;
+            padding: 2px 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 16px;
+        }
+
+        /* BIOS Style */
+        #bios-screen {
             position: fixed;
             inset: 0;
-            width: 100%;
-            height: 100%;
-            z-index: -1; /* Above base overlay, below content */
-            pointer-events: none;
-            opacity: 0; /* Faded in via JS */
-            transition: opacity 0.5s ease;
+            background: black;
+            color: #ccc;
+            padding: 40px;
+            font-family: 'Courier New', Courier, monospace;
+            z-index: 10000;
+            overflow: hidden;
+            font-size: 18px;
         }
-        .dark-theme #pixel-rain-canvas { opacity: 0.3; }
-        .light-theme #pixel-rain-canvas { opacity: 0.5; }
-        /* --- End New --- */
+        .bios-line { margin-bottom: 4px; white-space: pre-wrap; }
+        .bios-cursor { display: inline-block; width: 10px; height: 20px; background: #ccc; animation: blink 1s infinite; }
 
-
-        /* --- DARK THEME --- */
-        .dark-theme { background-color: #1a1a1a; color: #b0c4de; }
-        .dark-theme #background-overlay { 
-            background-image: repeating-conic-gradient(from 0deg, rgba(176,196,222,0.1) 0% 5%, transparent 5% 10%);
-        }
-        .dark-theme .window, .dark-theme .window-body { /* Apply default dark theme to all windows */
-            background: rgba(26, 26, 26, 0.85); color: #b0c4de; border-color: #000; box-shadow: 0 0 10px rgba(0, 255, 204, 0.3); backdrop-filter: blur(4px); 
-        }
-        .dark-theme .window-body.cmd-box {
-            background-color: #000 !important; /* Keep cmd black */
-            color: #4ade80 !important; /* Keep cmd text green */
-        }
-        .dark-theme .window-body.cmd-box .cmd-link { color: #00ffcc !important; }
-        .dark-theme .window-body.cmd-box .cmd-link:hover { color: #9aff9a !important; }
-        .dark-theme .window-body.cmd-box .typed-cursor { background-color: #4ade80 !important; }
-        .dark-theme .title-bar { background: linear-gradient(90deg, #000050, #0a528d); color: white; text-shadow: 1px 1px 2px #000; }
-        .dark-theme .sunken-panel, .dark-theme input, .dark-theme textarea { background-color: #1a1a1a; color: #9aff9a; border-color: #000 #fff #fff #000; }
-        .dark-theme h2.section-title, .dark-theme .footer-text { color: #fff; text-shadow: 0 0 5px rgba(0, 255, 204, 0.8), 0 0 8px rgba(0, 255, 204, 0.6); }
-
-        /* --- LIGHT THEME --- */
-        .light-theme { background-color: #B8B8B8; }
-        .light-theme #background-overlay { 
-            background-image: repeating-conic-gradient(from 0deg, rgba(0,0,0,0.1) 0% 5%, transparent 5% 10%);
-            opacity: 0.15;
-        }
-        /* === MODIFIED: .light-theme .window === */
-        .light-theme .window {
-            background: #c0c0c0;
-            color: #000;
-            /* MODIFIED: Appending drop shadow to 98.css default styles */
-            box-shadow: inset 1px 1px 0px 1px #ffffff, inset 0 0 0 1px #868a8e, 1px 1px 0 1px #000000, 3px 3px 8px rgba(0, 0, 0, 0.25); 
-            backdrop-filter: none;
-        }
-        .light-theme .window-body {
-            background: #c0c0c0;
-            color: #000;
-            backdrop-filter: none;
-            /* Remove the shadow from the body in case it inherits */
-            box-shadow: none;
-        }
-        .light-theme .window-body.cmd-box { 
-            background-color: #fff !important;
-            color: #000 !important;
-        }
-        .light-theme .window-body.cmd-box .cmd-link { color: blue !important; } 
-        .light-theme .window-body.cmd-box .cmd-link:hover { color: darkblue !important; } 
-        .light-theme .window-body.cmd-box .typed-cursor { background-color: #000 !important; }
-        .light-theme h2.section-title, .light-theme .footer-text { color: white; text-shadow: 2px 2px #000; }
-
-        /* --- SHARED STYLES --- */
-        .window, button, input, textarea, select, label, .title-bar { font-family: 'VT323', monospace !important; font-size: 20px; }
-        .wave { animation: wave-animation 2.5s infinite; transform-origin: 70% 70%; display: inline-block; }
-        @keyframes wave-animation { 0% { transform: rotate(0.0deg) } 10% { transform: rotate(14.0deg) } 20% { transform: rotate(-8.0deg) } 30% { transform: rotate(14.0deg) } 40% { transform: rotate(-4.0deg) } 50% { transform: rotate(10.0deg) } 60% { transform: rotate(0.0deg) } 100% { transform: rotate(0.0deg) } }
         @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
-        .typed-cursor { display: inline-block; width: 0.6em; height: 1.3em; animation: blink 1s infinite; margin-left: 2px; vertical-align: middle; background-color: #4ade80; }
-        .taskbar { position: fixed; top: 0; left: 0; width: 100%; z-index: 100; border-bottom: 2px solid; }
-        .light-theme .taskbar { border-color: #fff; }
-        .dark-theme .taskbar { border-color: #00ffcc; }
-        .taskbar .window-body { display: flex; align-items: center; gap: 4px; padding: 4px !important; height: 48px; }
-        
-        /* Force game active state to dark theme (ONLY in dark theme) */
-        .dark-theme .window-body.cmd-box.game-active, 
-        .dark-theme .window-body.cmd-box.game-active .game-canvas { 
-            background-color: #000 !important; 
-            color: #4ade80 !important; 
-        }
-        .dark-theme .window-body.cmd-box.game-active .cmd-link { color: #00ffcc !important; } 
-        .dark-theme .window-body.cmd-box.game-active .cmd-link:hover { color: #9aff9a !important; }
-        .dark-theme .window-body.cmd-box.game-active .typed-cursor { background-color: #4ade80 !important; }
 
-        .game-canvas {
-            font-size: 18px; line-height: 1.1; padding: 10px 0 0 0;
-            overflow: hidden; white-space: pre;
-            background-color: transparent !important; color: inherit !important;
-            display: inline-block; text-align: left;
+        /* Scrollbars */
+        ::-webkit-scrollbar { width: 16px; height: 16px; }
+        ::-webkit-scrollbar-track { background: #dfdfdf; box-shadow: inset 1px 1px #808080; }
+        ::-webkit-scrollbar-thumb { 
+            background: #c0c0c0;
+            box-shadow: inset 1px 1px #fff, inset -1px -1px #808080, 1px 1px #000;
         }
-        .window { transition: transform 0.2s ease-out, box-shadow 0.2s ease-out; }
-        /* This is the DARK THEME hover */
-        section:not(#home) .window:hover { 
-            transform: translateY(-5px) scale(1.02); 
-            box-shadow: 0 5px 20px rgba(0, 255, 204, 0.5); 
-        }
-        
-        /* === MODIFIED: .light-theme ... :hover === */
-        .light-theme section:not(#home) .window:hover { 
-            /* 98.css default shadow + new HEAVIER drop shadow */
-            box-shadow: inset 1px 1px 0px 1px #ffffff, inset 0 0 0 1px #868a8e, 1px 1px 0 1px #000000, 5px 5px 15px rgba(0, 0, 0, 0.3);
-            /* We must re-declare the transform here */
-            transform: translateY(-5px) scale(1.02); 
-        }
-        
-        /* Button Padding */
-        button { 
-            transition: transform 0.1s ease-out, filter 0.1s ease-out; 
-            padding-left: 1.5rem !important;
-            padding-right: 1.5rem !important;
-            padding-top: 0.25rem !important;
-            padding-bottom: 0.25rem !important;
-        }
-        button.px-5 {
-            padding-left: 1.25rem !important;
-            padding-right: 1.25rem !important;
-        }
-        .taskbar button {
-            padding-left: 0.75rem !important;
-            padding-right: 0.75rem !important;
+        ::-webkit-scrollbar-button {
+            background: #c0c0c0;
+            box-shadow: inset 1px 1px #fff, inset -1px -1px #808080, 1px 1px #000;
+            width: 16px; height: 16px;
         }
 
-        .window > .title-bar > .title-bar-controls button {
-            padding: 0 !important;
-            box-sizing: content-box !important; 
-            width: 16px !important;
-            height: 14px !important;
-            min-width: 16px !important;
-            min-height: 14px !important;
-            font-size: 16px !important;
-            line-height: 14px !important;
-            display: flex !important; 
-            align-items: center !important;
-            justify-content: center !important;
-            margin-left: 2px; 
+        /* Animations */
+        .window-enter { opacity: 0; transform: scale(0.9) translateY(20px); }
+        .window-enter-active { opacity: 1; transform: scale(1) translateY(0); transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+
+        /* CMD Box Override */
+        .cmd-box {
+            background: #000 !important;
+            color: #4ade80 !important;
+            font-family: 'VT323', monospace;
+            padding: 10px;
+            overflow-y: auto;
+        }
+        .cmd-input-container { display: flex; align-items: center; gap: 4px; }
+        .cmd-input {
+            background: transparent;
+            border: none;
+            color: inherit;
+            font-family: inherit;
+            font-size: inherit;
+            outline: none;
+            flex: 1;
         }
 
-        button:hover { transform: scale(1.05); filter: brightness(1.1); }
-        button:active { transform: scale(0.98); }
+        /* Glitch Text */
+        .glitch-text {
+            position: relative;
+            animation: glitch 2s infinite linear alternate-reverse;
+        }
+        @keyframes glitch {
+            0% { text-shadow: 0.05em 0 0 rgba(255,0,0,0.75), -0.05em -0.025em 0 rgba(0,255,0,0.75), -0.025em 0.05em 0 rgba(0,0,255,0.75); }
+            14% { text-shadow: 0.05em 0 0 rgba(255,0,0,0.75), -0.05em -0.025em 0 rgba(0,255,0,0.75), -0.025em 0.05em 0 rgba(0,0,255,0.75); }
+            15% { text-shadow: -0.05em -0.025em 0 rgba(255,0,0,0.75), 0.025em 0.025em 0 rgba(0,255,0,0.75), -0.05em -0.05em 0 rgba(0,0,255,0.75); }
+            49% { text-shadow: -0.05em -0.025em 0 rgba(255,0,0,0.75), 0.025em 0.025em 0 rgba(0,255,0,0.75), -0.05em -0.05em 0 rgba(0,0,255,0.75); }
+            50% { text-shadow: 0.025em 0.05em 0 rgba(255,0,0,0.75), 0.05em 0 0 rgba(0,255,0,0.75), 0 -0.05em 0 rgba(0,0,255,0.75); }
+            99% { text-shadow: 0.025em 0.05em 0 rgba(255,0,0,0.75), 0.05em 0 0 rgba(0,255,0,0.75), 0 -0.05em 0 rgba(0,0,255,0.75); }
+            100% { text-shadow: -0.025em 0 0 rgba(255,0,0,0.75), -0.025em -0.025em 0 rgba(0,255,0,0.75), -0.025em -0.05em 0 rgba(0,0,255,0.75); }
+        }
+
 
 </style>
 </head>
 <body>
-    {/* Background overlay */}
-    <div id="background-overlay"></div>
-    {/* NEW: Pixel rain canvas */}
-    <canvas id="pixel-rain-canvas"></canvas>
-
+    <div id="crt-overlay"></div>
+    <div id="crt-vignette" class="crt-flicker"></div>
+    <div id="error-display"></div>
+    
     <div id="root"></div>
 
     <script type="text/babel">
-    
-        emailjs.init("BVDIHmf9Ky8OUg5dL"); 
+        // Global Error Handler for Babel Script
+        window.onerror = function(msg, url, line, col, error) {
+            const display = document.getElementById('error-display');
+            if (display) {
+                display.style.display = 'block';
+                display.textContent = `SYSTEM ERROR: ${msg}\nLine: ${line}\nCol: ${col}\nStack: ${error ? error.stack : 'N/A'}`;
+            }
+            return false;
+        };
 
-        const { useState, useEffect, useRef, Fragment } = React;
+        const { useState, useEffect, useRef, Fragment, useMemo } = React;
+        // The global for Framer Motion UMD is window.Motion
+        const { motion, AnimatePresence } = window.Motion || { motion: () => null, AnimatePresence: Fragment };
 
-        // --- Data (User's updated version) ---
-        const projectsData = [ { id: 1, title: " KishanBhai ", description: "A unified platform for farmers which leverages AI to detect crop diseases, find government schemes and provide market analysis.", github: "https://github.com/devokdev" }, { id: 2, title: " StegoMark", description: "Invisible image watermarking using mix of RDWT(Reduntant DWT) with advanced CNN and Transformer models for robust copyright protection.", github: "https://github.com/devokdev" }, { id: 3, title: " CivicResolve AI", description: "An AI platform for citizens to submit and track reports on civil issues like waterlogging, improper waste disposal, etc., streamlining resolution.", github: "https://github.com/devokdev" }, { id: 4, title: " RAG Chatbot", description: "A RAG chatbot that answers questions based on admin approved uploaded documents, by creating vector embeddings and using local LLMs.", github: "https://github.com/devokdev" },{id: 5, title: "SafeCircle", description: "A women safety app that uses real-time location tracking, emergency alerts, and community support to ensure safety and quick assistance.", github: "https://github.com/devokdev" }];
-        const achievementsData = [ { id: 1, text: "4x National Hackathon Finalist" }, { id: 2, text: "1x Hackathon Winner at IIT Ropar" }, { id: 3, text: "Finalist in Google's Guinness World Record Gen AI Hackathon" }, { id: 4, text: "Completed Project Internship @ Sopra Steria" } ];
+        // --- BIOS CONFIG ---
+        const BIOS_LOGS = [
+            "AMIBIOS(C)2025 American Megatrends, Inc.",
+            "BIOS Date: 05/01/26 18:03:57 Ver: 08.00.15",
+            "CPU: Intel(R) Core(TM) i9-14900K @ 6.00GHz",
+            "Speed: 6000MHz",
+            "",
+            "Memory Test: 65536KB OK",
+            "PMU Initialization Complete",
+            "Detecting Primary Master ... [OK]",
+            "Detecting Primary Slave  ... [OK]",
+            "Detecting Secondary Master.. [OK]",
+            "Detecting Secondary Slave .. [OK]",
+            "",
+            "USB Device(s): 1 Keyboard, 1 Mouse, 1 Hub",
+            "Auto-Detecting USB Mass Storage Devices ...",
+            "01 USB drive found and configured.",
+            "",
+            "Checking NVRAM.. OK",
+            "Initializing Plug and Play Cards.. DONE",
+            "Searching for Boot Record from IDE-0.. OK",
+            "",
+            "Starting KARTAVYA_OS v1.0.4...",
+            "Loading System Files...",
+            "Initializing GUI Manager...",
+            "Welcome to the Future."
+        ];
 
-        // --- ASCII Racer Game Component (User's settings + harder) ---
-     function AsciiGame() {
-            const [renderString, setRenderString] = useState("Loading Game..."); const gameLoopRef = useRef(null); const playerRef = useRef({ x: 15, char: '▲' }); const obstaclesRef = useRef([]); const frameRef = useRef(0); const scoreRef = useRef(0); const gameSpeedRef = useRef(5); const isGameOverRef = useRef(false); const GAME_WIDTH = 30; const GAME_HEIGHT = 12;
-            const resetGame = () => { isGameOverRef.current = false; playerRef.current = { x: Math.floor(GAME_WIDTH / 2), char: '▲' }; obstaclesRef.current = []; frameRef.current = 0; scoreRef.current = 0; gameSpeedRef.current = 5; if (gameLoopRef.current) cancelAnimationFrame(gameLoopRef.current); gameLoopRef.current = requestAnimationFrame(updateGame); };
-            const centerText = (text, width) => { const padding = Math.max(0, Math.floor((width - text.length) / 2)); return ' '.repeat(padding) + text; };
-            const buildRenderString = () => { let grid = Array(GAME_HEIGHT).fill().map(() => Array(GAME_WIDTH).fill(' ')); const player = playerRef.current; if (player.x >= 0 && player.x < GAME_WIDTH) grid[GAME_HEIGHT - 1][player.x] = player.char; obstaclesRef.current.forEach(obs => { if (obs.y >= 0 && obs.y < GAME_HEIGHT && obs.x >= 0 && obs.x < GAME_WIDTH) grid[obs.y][obs.x] = obs.char; }); const scoreLine = `Score: ${scoreRef.current} | Use ArrowLeft/Right`; let output = centerText(scoreLine, GAME_WIDTH + 2) + '\n'; output += `+${'-'.repeat(GAME_WIDTH)}+\n`; output += grid.map(row => `|${row.join('')}|`).join('\n'); output += `\n+${'-'.repeat(GAME_WIDTH)}+\n`; if (isGameOverRef.current) { const gameOverLine1 = "GAME OVER!"; const gameOverLine2 = "Press 'R' to Restart"; output += `\n${centerText(gameOverLine1, GAME_WIDTH + 2)}\n${centerText(gameOverLine2, GAME_WIDTH + 2)}`; } return output; };
-            const updateGame = () => { 
-                if (isGameOverRef.current) { cancelAnimationFrame(gameLoopRef.current); return; } 
-                frameRef.current++; 
-                let shouldUpdateLogic = frameRef.current % gameSpeedRef.current === 0; 
-                if (shouldUpdateLogic) { 
-                    scoreRef.current++; 
-                    let newObstacles = []; 
-                    obstaclesRef.current.forEach(obs => { 
-                        obs.y++; 
-                        if (obs.x === playerRef.current.x && obs.y === GAME_HEIGHT - 1) { 
-                            isGameOverRef.current = true; playerRef.current.char = 'X'; 
-                        } 
-                        if (obs.y < GAME_HEIGHT) newObstacles.push(obs); 
-                    }); 
-                    obstaclesRef.current = newObstacles; 
-                    if (frameRef.current % (gameSpeedRef.current * 2) === 0) { 
-                        obstaclesRef.current.push({ x: Math.floor(Math.random() * GAME_WIDTH), y: 0, char: 'O' }); 
-                    }
-                } 
-                setRenderString(buildRenderString()); 
-                gameLoopRef.current = requestAnimationFrame(updateGame); 
-            };
-            const handleKeyDown = (e) => { e.preventDefault(); if (isGameOverRef.current) { if (e.key === 'r' || e.key === 'R') resetGame(); return; } if (e.key === 'ArrowLeft' && playerRef.current.x > 0) playerRef.current.x--; else if (e.key === 'ArrowRight' && playerRef.current.x < GAME_WIDTH - 1) playerRef.current.x++; };
-            useEffect(() => { window.addEventListener('keydown', handleKeyDown); resetGame(); return () => { cancelAnimationFrame(gameLoopRef.current); window.removeEventListener('keydown', handleKeyDown); }; }, []); 
-            return <pre className="game-canvas">{renderString}</pre>;
-        }
+        // --- APPS & WINDOWS ---
+        const INITIAL_WINDOWS = [
+            { id: 'welcome', title: 'Welcome.txt', type: 'notepad', content: 'Welcome to my 10x Portfolio! Feel free to explore my projects, read about me, or play some games. Use the Start menu or desktop icons to get started.', x: 100, y: 100, width: 400, height: 300, isOpen: true, isMinimized: false, zIndex: 10 },
+            { id: 'cmd', title: 'C:\\WINDOWS\\system32\\cmd.exe', type: 'cmd', x: 150, y: 150, width: 600, height: 400, isOpen: false, isMinimized: false, zIndex: 11 },
+        ];
 
-        // --- MODIFIED: Nav Bar Component ---
-        function NavBar({ toggleTheme, theme }) {
-            // NEW: State for mobile menu
-            const [menuOpen, setMenuOpen] = useState(false);
+        const PROJECTS = [
+            { id: 1, title: "KishanBhai", description: "AI platform for farmers to detect crop diseases and analyze markets.", github: "https://github.com/devokdev" },
+            { id: 2, title: "StegoMark", description: "Invisible watermarking using RDWT and Transformers.", github: "https://github.com/devokdev" },
+            { id: 3, title: "CivicResolve AI", description: "AI platform for tracking civil issues like waste and waterlogging.", github: "https://github.com/devokdev" },
+            { id: 4, title: "RAG Chatbot", description: "Document-based QA using local LLMs and vector embeddings.", github: "https://github.com/devokdev" },
+            { id: 5, title: "SafeCircle", description: "Women safety app with real-time tracking and alerts.", github: "https://github.com/devokdev" }
+        ];
+
+        // --- COMPONENTS ---
+
+        function BiosBoot({ onComplete }) {
+            const [lines, setLines] = useState([]);
+            const [index, setIndex] = useState(0);
+
+            useEffect(() => {
+                if (index < BIOS_LOGS.length) {
+                    const timer = setTimeout(() => {
+                        setLines(prev => [...prev, BIOS_LOGS[index]]);
+                        setIndex(index + 1);
+                    }, index === BIOS_LOGS.length - 1 ? 1000 : Math.random() * 200);
+                    return () => clearTimeout(timer);
+                } else {
+                    setTimeout(onComplete, 1000);
+                }
+            }, [index]);
 
             return (
-                <nav className="taskbar window">
-                    <div className="window-body justify-between">
-                        {/* MODIFIED: Hide on mobile, show on medium+ */}
-                        <div className="hidden md:flex gap-4">
-                            <a href="#home"><button>Home</button></a>
-                            <a href="#about"><button>About</button></a>
-                            <a href="#projects"><button>Projects</button></a>
-                            <a href="#achievements"><button>Achievements</button></a>
-                            <a href="#contact"><button>Contact</button></a>
-                        </div>
-                        
-                        {/* MODIFIED: Wrapper for mobile controls */}
-                        <div className="flex gap-2">
-                            {/* NEW: Mobile "Menu" button */}
-                            <button onClick={() => setMenuOpen(prev => !prev)} className="md:hidden">
-                                Menu
-                            </button>
+                <div id="bios-screen">
+                    {lines.map((line, i) => (
+                        <div key={i} className="bios-line">{line}</div>
+                    ))}
+                    <div className="bios-cursor"></div>
+                </div>
+            );
+        }
 
-                            {/* MODIFIED: Both light and dark modes now use images */}
-                            <button onClick={toggleTheme} title="Toggle Theme" className="flex items-center gap-1">
-                                {theme === 'dark' ? (
-                                    <>
-                                        Light
-                                        {/* Ensure this path is correct */}
-                                        <img src="/src/lightmode.png" alt="Light mode icon" className="w-6 h-6 inline-block" />
-                                    </>
-                                ) : (
-                                    <>
-                                        Dark
-                                        {/* MODIFIED: Replace emoji with img tag. Ensure this path is correct */}
-                                        <img src="/src/darkmode.png" alt="Dark mode icon" className="w-6 h-6 inline-block" />
-                                    </>
-                                )}
-                            </button>
+        function Window({ win, onClose, onMinimize, onFocus, children, theme }) {
+            return (
+                <motion.div
+                    drag
+                    dragMomentum={false}
+                    onDragStart={onFocus}
+                    initial={{ scale: 0.9, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    exit={{ scale: 0.9, opacity: 0 }}
+                    style={{ 
+                        zIndex: win.zIndex, 
+                        left: win.x, 
+                        top: win.y, 
+                        width: win.width, 
+                        height: win.height,
+                        display: win.isMinimized ? 'none' : 'flex'
+                    }}
+                    className={`window ${theme}-theme`}
+                >
+                    <div className="title-bar" onPointerDown={onFocus}>
+                        <div className="title-bar-text flex items-center gap-2">
+                            {win.type === 'cmd' ? <i data-lucide="terminal" className="w-4 h-4 pointer-events-none"></i> : <i data-lucide="file-text" className="w-4 h-4 pointer-events-none"></i>}
+                            {win.title}
+                        </div>
+                        <div className="title-bar-controls">
+                            <button aria-label="Minimize" className="cursor-pointer" onClick={(e) => { e.stopPropagation(); onMinimize(win.id); }}></button>
+                            <button aria-label="Maximize" className="cursor-pointer"></button>
+                            <button aria-label="Close" className="cursor-pointer" onClick={(e) => { e.stopPropagation(); onClose(win.id); }}></button>
                         </div>
                     </div>
-                    
-                    {/* NEW: Mobile dropdown menu */}
-                    {menuOpen && (
-                        <div 
-                            className="md:hidden window-body p-2 absolute top-full left-0 w-full shadow-lg"
-                            // Apply theme-aware background color manually
-                            style={{ 
-                                background: theme === 'dark' ? 'rgba(26, 26, 26, 0.95)' : '#c0c0c0',
-                                backdropFilter: theme === 'dark' ? 'blur(4px)' : 'none',
-                                borderColor: theme === 'dark' ? '#000' : '#868a8e',
-                                borderTopStyle: 'none',
-                                borderLeftStyle: 'solid',
-                                borderRightStyle: 'solid',
-                                borderBottomStyle: 'solid',
-                                borderWidth: '2px'
-                            }}
-                        >
-                            <ul className="list-none space-y-1">
-                                <li><a href="#home" onClick={() => setMenuOpen(false)}><button className="w-full text-left !justify-start">Home</button></a></li>
-                                <li><a href="#about" onClick={() => setMenuOpen(false)}><button className="w-full text-left !justify-start">About</button></a></li>
-                                <li><a href="#projects" onClick={() => setMenuOpen(false)}><button className="w-full text-left !justify-start">Projects</button></a></li>
-                                <li><a href="#achievements" onClick={() => setMenuOpen(false)}><button className="w-full text-left !justify-start">Achievements</button></a></li>
-                                <li><a href="#contact" onClick={() => setMenuOpen(false)}><button className="w-full text-left !justify-start">Contact</button></a></li>
-                            </ul>
-                        </div>
-                    )}
-                </nav>
+                    <div className="window-body flex-1 overflow-hidden flex flex-col">
+                        {children}
+                    </div>
+                </motion.div>
             );
         }
-        // --- END MODIFIED: Nav Bar Component ---
-        
-        // --- MODIFIED: Hero Component ---
-        function Hero() {
-            const [line1, setLine1] = useState("C:\\Users\\Kartavya>"); const [line2, setLine2] = useState(">"); const [line3, setLine3] = useState(">"); const [showCursor, setShowCursor] = useState(true); const [showNav, setShowNav] = useState(false); const [showBoot, setShowBoot] = useState(true); const [isGameRunning, setIsGameRunning] = useState(false);
-            const line1Text = "C:\\Users\\Kartavya> Hello, I'm Kartavya Dev"; const line2Text = "> 3rd Year B.Tech Student"; const line3Text = "> Passionate about AI & Software Development";
-            useEffect(() => { if (isGameRunning) return; const bootTimer = setTimeout(() => setShowBoot(false), 1500); const type = (setter, text, index, callback) => { if (index < text.length) { setter(text.substring(0, index + 1)); setTimeout(() => type(setter, text, index + 1, callback), 60); } else if (callback) { callback(); } }; const startTyping = () => { setLine1("C:\\Users\\Kartavya>"); setLine2(">"); setLine3(">"); setShowNav(false); setShowCursor(true); type(setLine1, line1Text, 17, () => { setLine2(">"); type(setLine2, line2Text, 1, () => { setLine3(">"); type(setLine3, line3Text, 1, () => { setShowCursor(false); setShowNav(true); }); }); }); }; if (!showBoot) { setTimeout(startTyping, 500); } return () => clearTimeout(bootTimer); }, [showBoot, isGameRunning]); 
-            
-            if (showBoot) { 
-                {/* MODIFIED: Responsive font size */}
-                return ( <div className="fixed inset-0 bg-black flex items-center justify-center z-50 text-green-400 text-2xl md:text-3xl px-4 text-center">Loading Portfolio.exe...</div> ); 
-            }
-            
-            // MODIFIED: Responsive font size
-            const cmdBoxClasses = `window-body cmd-box text-lg md:text-2xl p-6 ${isGameRunning ? 'game-active' : ''}`; 
 
-            return ( 
-                // MODIFIED: Responsive padding-top
-                <section id="home" className="min-h-screen flex items-center justify-center pt-16 md:pt-24 pb-12 px-4"> 
-                    {/* MODIFIED: Removed min-width style */}
-                    <div className="window w-full max-w-3xl"> 
-                        <div className="title-bar"> <div className="title-bar-text">C:\WINDOWS\system32\cmd.exe</div> <div className="title-bar-controls"> <button aria-label="Minimize"></button><button aria-label="Maximize"></button><button aria-label="Close"></button> </div> </div> 
-                        <div className={cmdBoxClasses} style={{ minHeight: '420px' }}> 
-                            {!isGameRunning ? ( <Fragment> <p>{line1}{showCursor && line1.length === line1Text.length && <span className="typed-cursor"></span>}</p> <p>{line2}{showCursor && line1.length === line1Text.length && line2.length > 1 && line2.length < line2Text.length && <span className="typed-cursor"></span>}</p> <p>{line3}{showCursor && line2.length === line2Text.length && line3.length > 1 && line3.length < line3Text.length && <span className="typed-cursor"></span>}</p> {showNav && ( <div className="mt-4"> <p>C:\Users\Kartavya> click the command to play:<span className="typed-cursor"></span></p><ul className="list-none mt-2 space-y-1"> <li><span onClick={() => setIsGameRunning(true)} className="cmd-link underline cursor-pointer">> run ascii_racer.exe</span></li> </ul> </div> )} </Fragment> ) : ( <Fragment> <p>C:\Users\Kartavya> Hello, I'm Kartavya Dev</p> <p>> 3rd Year B.Tech Student</p> <p>> Passionate about AI & Software Development</p> <div className="mt-4"></div> <p>C:\Users\Kartavya> run ascii_racer.exe</p> 
-                                {/* MODIFIED: Added overflow wrapper for game */}
-                                <div className="flex justify-center overflow-x-auto"> 
-                                    <AsciiGame /> 
-                                </div> 
-                                <ul className="list-none mt-2 space-y-1"> <li><span onClick={() => setIsGameRunning(false)} className="cmd-link underline cursor-pointer">> exit</span></li> </ul> 
-                            </Fragment> )} 
-                        </div> 
-                    </div> 
-                </section> 
-            );
-        }
-        // --- END MODIFIED: Hero Component ---
+        function CmdApp() {
+            const [history, setHistory] = useState(["KARTAVYA_OS [Version 1.0.426]", "(c) 2026 Kartavya Dev. All rights reserved.", ""]);
+            const [input, setInput] = useState("");
+            const bottomRef = useRef();
 
-        // --- MODIFIED: About Component ---
-        function About() { 
-            return ( 
-                <section id="about" className="py-12 md:py-16 px-4"> 
-                    <div className="window w-full max-w-4xl mx-auto"> 
-                        <div className="title-bar"><div className="title-bar-text">About Me.exe</div></div> 
-                        <div className="window-body p-5"> 
-                            <div className="flex flex-col md:flex-row items-center md:items-start gap-6"> 
-                                {/* MODIFIED: Responsive avatar size */}
-                                <div className="sunken-panel p-1 w-32 h-32 md:w-40 md:h-40 flex-shrink-0"> 
-                                    <img src="/src/pixel.jpg" alt="Kartavya Dev Pixel Avatar" className="w-full h-full object-cover" /> 
-                                </div> 
-                                {/* MODIFIED: Responsive font sizes */}
-                                <div className="text-lg md:text-xl"> 
-                                    <h2 className="text-2xl md:text-3xl font-bold mb-2"> Kartavya Dev </h2> 
-                                    <p className="mb-4">I'm a tech-obsessed 3rd Year B.Tech student passionate about Artificial Intelligence and Software Development. I thrive on solving complex problems, building scalable systems, and bringing AI-powered ideas to life.</p> 
-                                    <p>My goal is to leverage technology to create efficient and impactful solutions.</p> 
-                                    <div className="flex flex-wrap gap-3 mt-6"> 
-                                        <a href="KartavyaCVaug25.pdf" target="_blank"><button>View Resume.pdf</button></a> 
-                                        <a href="https://github.com/devokdev" target="_blank"><button>Open GitHub</button></a> 
-                                        <a href="https://www.linkedin.com/in/kartavya-dev-89aa87291/" target="_blank"><button>LinkedIn</button></a> 
-                                    </div> 
-                                </div> 
-                            </div> 
-                        </div> 
-                    </div> 
-                </section> 
-            ); 
-        }
-        // --- END MODIFIED: About Component ---
-        
-        // --- MODIFIED: Projects Component ---
-        function Projects() { 
-            return ( 
-                <section id="projects" className="py-12 md:py-16 px-4"> 
-                    {/* MODIFIED: Responsive font size */}
-                    <h2 className="text-3xl md:text-4xl text-center mb-6 section-title"> C:\My_Projects </h2> 
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-6xl mx-auto"> 
-                        {projectsData.map(project => ( 
-                            <div key={project.id} className="window"> 
-                                <div className="title-bar"> 
-                                    <div className="title-bar-text">{project.title}</div> 
-                                    <div className="title-bar-controls"><button aria-label="Close"></button></div> 
-                                </div> 
-                                <div className="window-body p-4"> 
-                                    {/* MODIFIED: Responsive font size */}
-                                    <p className="text-base md:text-lg mb-4">{project.description}</p> 
-                                    <div className="flex justify-end"> 
-                                        <a href={project.github} target="_blank"><button>View GitHub</button></a> 
-                                    </div> 
-                                </div> 
-                            </div> 
-                        ))} 
-                    </div> 
-                </section> 
-            ); 
-        }
-        // --- END MODIFIED: Projects Component ---
-        
-        // --- MODIFIED: Achievements Component ---
-        function Achievements() { 
-            return ( 
-                <section id="achievements" className="py-12 md:py-16 px-4"> 
-                    {/* MODIFIED: Responsive font size */}
-                    <h2 className="text-3xl md:text-4xl text-center mb-6 section-title"> C:\System\Achievements </h2> 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-6xl mx-auto"> 
-                        {achievementsData.map(ach => ( 
-                            <div key={ach.id} className="window"> 
-                                <div className="title-bar"><div className="title-bar-text">Achievement Unlocked!</div></div> 
-                                <div className="window-body p-5"> 
-                                    {/* MODIFIED: Responsive layout (stacks on small screens) */}
-                                    <div className="flex flex-col sm:flex-row items-start sm:items-center sm:justify-between gap-4"> 
-                                        {/* MODIFIED: Responsive font size */}
-                                        <p className="text-lg md:text-xl flex-1"><span className="text-green-400 font-bold mr-2">✔</span>{ach.text}</p> 
-                                        <button className="px-5">OK</button> 
-                                    </div> 
-                                </div> 
-                            </div> 
-                        ))} 
-                    </div> 
-                </section> 
-            ); 
-        }
-        // --- END MODIFIED: Achievements Component ---
-
-        // === MODIFIED Contact Component ===
-// === MODIFIED Contact Component ===
-        function Contact() {
-            const [name, setName] = useState('');           // <-- NEW
-            const [fromEmail, setFromEmail] = useState('');
-            const [message, setMessage] = useState('');
-            const [status, setStatus] = useState('Send Message');
-
-            const handleSubmit = (e) => {
-                e.preventDefault(); 
-                setStatus('Sending...'); 
-
-                // These are the variables from your EmailJS template
-                const templateParams = {
-                    name: name,           // <-- NEW
-                    from_email: fromEmail,
-                    message: message,
-                };
-
-                /* ===============================================================
-                 !!! IMPORTANT !!!
-                 REPLACE THE 2 PLACEHOLDERS BELOW WITH YOUR
-                 EMAILJS SERVICE ID AND TEMPLATE ID
-                 ===============================================================
-                */
-                emailjs.send('service_aye3zpg', 'template_5kv8jxn', templateParams)
-                    .then((response) => {
-                        console.log('SUCCESS!', response.status, response.text);
-                        setStatus('Message Sent!');
-                        setName('');      // <-- NEW
-                        setFromEmail('');
-                        setMessage('');
-                        setTimeout(() => setStatus('Send Message'), 3000);
-                    }, (err) => {
-                        console.log('FAILED...', err);
-                        setStatus('Failed. Try Again.');
-                        setTimeout(() => setStatus('Send Message'), 3000);
-                    });
-            };
-            
-            const handleReset = () => {
-                 setName('');      // <-- NEW
-                 setFromEmail('');
-                 setMessage('');
-                 setStatus('Send Message');
-            };
-
-            return ( 
-                <section id="contact" className="py-12 md:py-16 px-4"> 
-                    <div className="window max-w-4xl mx-auto"> 
-                        <div className="title-bar"><div className="title-bar-text">New Message - Email Client</div></div> 
-                        <div className="window-body p-5"> 
-                            <form onSubmit={handleSubmit} onReset={handleReset}> 
-                                <div className="field-row-stacked mb-4">
-                                    <label htmlFor="to_name" className="text-lg md:text-xl">To:</label>
-                                    <input id="to_name" type="text" value="Kartavya Dev" readOnly style={{ color: "#000" }} />
-                                </div>
-
-                                {/* === NEW NAME FIELD === */}
-                                <div className="field-row-stacked mb-4">
-                                    <label htmlFor="from_name" className="text-lg md:text-xl">Your Name:</label>
-                                    <input 
-                                        id="from_name" 
-                                        name="from_name" 
-                                        type="text" 
-                                        placeholder="Your Name"
-                                        required 
-                                        value={name} 
-                                        onChange={(e) => setName(e.target.value)} 
-                                    />
-                                </div> 
-                                {/* === END NEW NAME FIELD === */}
-
-                                <div className="field-row-stacked mb-4">
-                                    <label htmlFor="email" className="text-lg md:text-xl">From (Your Email):</label>
-                                    <input 
-                                        id="email" 
-                                        name="email" 
-                                        type="email" 
-                                        placeholder="your-email@example.com"
-                                        required 
-                                        value={fromEmail} 
-                                        onChange={(e) => setFromEmail(e.target.value)} 
-                                    />
-                                </div> 
-                                <div className="field-row-stacked mb-4">
-                                    <label htmlFor="message" className="text-lg md:text-xl">Message:</label>
-                                    <textarea 
-                                        id="message" 
-                                        name="message" 
-                                        rows="6" 
-                                        placeholder="Hello Kartavya, I saw your portfolio and..."
-                                        required
-                                        value={message}
-                                        onChange={(e) => setMessage(e.target.value)}
-                                    ></textarea>
-                                </div> 
-                                <div className="flex justify-end gap-3">
-                                    <button type="reset">Cancel</button>
-                                    <button type="submit" className="font-bold" disabled={status === 'Sending...'}>
-                                        {status}
-                                    </button>
-                                </div> 
-                            </form> 
-                            <div className="sunken-panel text-center p-2 mt-6"> 
-                                <p className="text-base md:text-lg">
-                                    Find me on: <a href="https://github.com/devokdev" target="_blank" className="text-cyan-400 underline mx-2">GitHub</a> | 
-                                    <a href="https://www.linkedin.com/in/kartavya-dev-89aa87291/" target="_blank" className="text-cyan-400 underline mx-2">LinkedIn</a> | 
-                                    <a href="mailto:kartavyadev3@gmail.com" className="text-cyan-400 underline ml-2">Email</a>
-                                </p> 
-                            </div> 
-                        </div> 
-                    </div> 
-                </section> 
-            ); 
-        }
-        // === END MODIFIED Contact Component ===
-        
-        // --- Main App Component (Pixel Rain Logic) ---
-        function App() {
-            const [theme, setTheme] = useState('dark');
-            
-            // --- Refs for canvas effect ---
-            const canvasRef = useRef(null);
-            const mousePosRef = useRef(null);
-            const animationFrameRef = useRef(null);
-            const particlesRef = useRef([]);
-
-            // --- Canvas Animation Effect ---
             useEffect(() => {
-                // We use document.getElementById here because the canvas is outside the React root
-                const canvas = document.getElementById('pixel-rain-canvas');
-                if (!canvas) return;
-                
+                bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+                if (window.lucide) lucide.createIcons();
+            }, [history]);
+
+            const handleCommand = (e) => {
+                if (e.key === 'Enter') {
+                    const cmd = input.trim().toLowerCase();
+                    let response = [];
+                    
+                    if (cmd === 'help') {
+                        response = ["Available commands:", "  help     - Show this help", "  ls       - List projects/files", "  clear    - Clear screen", "  whoami   - About Kartavya", "  neofetch - System stats", "  exit     - Close terminal"];
+                    } else if (cmd === 'ls') {
+                        response = ["Directory of C:\\Users\\Kartavya\\Projects", "05/01/2026  02:45 PM    <DIR>          KishanBhai", "05/01/2026  03:12 PM    <DIR>          StegoMark", "05/01/2026  04:00 PM    <DIR>          CivicResolve_AI", "05/01/2026  04:30 PM    <DIR>          RAG_Chatbot", "05/01/2026  05:00 PM    <DIR>          SafeCircle"];
+                    } else if (cmd === 'clear') {
+                        setHistory([]);
+                        setInput("");
+                        return;
+                    } else if (cmd === 'whoami') {
+                        response = ["Kartavya Dev", "3rd Year B.Tech Student | AI Enthusiast", "Passionate about building scalable AI systems and retro UI."];
+                    } else if (cmd === 'neofetch') {
+                        response = [
+                            "      .---.      OS: KARTAVYA_OS v1.0.4",
+                            "     /     \\     Host: Portfolio-Laptop-2026",
+                            "    | () () |    Kernel: 6.5.0-pixel-rain",
+                            "     \\  ^  /     Uptime: 42 mins",
+                            "      |||||      Packages: 1024 (dpkg)",
+                            "      |||||      Shell: bash 5.2.15",
+                            "                 Resolution: 1920x1080",
+                            "                 UI: Windows 98 / Cyberpunk",
+                            "                 CPU: Intel i9-14900K (24) @ 6.0GHz",
+                            "                 GPU: NVIDIA RTX 5090 Ti",
+                            "                 Memory: 32GB / 64GB"
+                        ];
+                    } else if (cmd === '') {
+                        response = [""];
+                    } else {
+                        response = [`'${cmd}' is not recognized as an internal or external command,`, "operable program or batch file."];
+                    }
+
+                    setHistory(prev => [...prev, `C:\\Users\\Kartavya> ${input}`, ...response, ""]);
+                    setInput("");
+                }
+            };
+
+            return (
+                <div className="cmd-box flex-1 flex flex-col font-mono text-sm md:text-base">
+                    <div className="flex-1 overflow-y-auto pr-2">
+                        {history.map((line, i) => <div key={i}>{line}</div>)}
+                        <div className="cmd-input-container">
+                            <span>C:\Users\Kartavya&gt;</span>
+                            <input 
+                                autoFocus 
+                                className="cmd-input" 
+                                value={input} 
+                                onChange={(e) => setInput(e.target.value)}
+                                onKeyDown={handleCommand}
+                            />
+                        </div>
+                        <div ref={bottomRef} />
+                    </div>
+                </div>
+            );
+        }
+
+        function ExplorerApp() {
+            return (
+                <div className="p-4 bg-white text-black flex-1 overflow-y-auto">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        {PROJECTS.map(p => (
+                            <div key={p.id} className="sunken-panel p-3 bg-gray-100 border border-gray-400">
+                                <h3 className="font-bold text-lg">{p.title}</h3>
+                                <p className="text-sm mb-2">{p.description}</p>
+                                <a href={p.github} target="_blank" className="text-blue-700 underline text-sm">View on GitHub</a>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            );
+        }
+
+        function NotepadApp({ content }) {
+            return (
+                <textarea 
+                    readOnly 
+                    className="flex-1 p-2 outline-none resize-none font-mono text-base bg-white text-black"
+                    value={content}
+                />
+            );
+        }
+
+        function Taskbar({ windows, onStartOpen, onWindowClick, theme, toggleTheme }) {
+            const [time, setTime] = useState(new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }));
+            
+            useEffect(() => {
+                const timer = setInterval(() => {
+                    setTime(new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }));
+                }, 1000);
+                return () => clearInterval(timer);
+            }, []);
+
+            return (
+                <div className="taskbar">
+                    <button className="start-button cursor-pointer" onClick={onStartOpen}>
+                        <i data-lucide="monitor" className="w-4 h-4 pointer-events-none"></i>
+                        <span>Start</span>
+                    </button>
+                    <div className="taskbar-divider"></div>
+                    <div className="flex gap-1 overflow-x-auto">
+                        {windows.map(win => win.isOpen && (
+                            <button 
+                                key={win.id} 
+                                className={`px-2 h-8 min-w-[100px] text-left truncate cursor-pointer ${!win.isMinimized ? 'active' : ''}`}
+                                onClick={() => onWindowClick(win.id)}
+                            >
+                                {win.title}
+                            </button>
+                        ))}
+                    </div>
+                    <div className="tray">
+                        <button onClick={toggleTheme} className="p-0 border-none bg-transparent hover:scale-110">
+                            {theme === 'dark' ? <i data-lucide="sun" className="w-4 h-4 text-yellow-400"></i> : <i data-lucide="moon" className="w-4 h-4 text-blue-800"></i>}
+                        </button>
+                        <span>{time}</span>
+                    </div>
+                </div>
+            );
+        }
+
+        function AsciiGame() {
+            const [pos, setPos] = useState(2);
+            const [enemies, setEnemies] = useState([{ r: 0, c: 1 }]);
+            const [score, setScore] = useState(0);
+            const [gameOver, setGameOver] = useState(false);
+            const gameRef = useRef();
+
+            useEffect(() => {
+                if (gameOver) return;
+                const interval = setInterval(() => {
+                    setEnemies(prev => {
+                        const next = prev.map(e => ({ ...e, r: e.r + 1 })).filter(e => e.r < 15);
+                        if (Math.random() > 0.8) next.push({ r: 0, c: Math.floor(Math.random() * 5) });
+                        return next;
+                    });
+                    setScore(s => s + 1);
+                }, 100);
+                return () => clearInterval(interval);
+            }, [gameOver]);
+
+            useEffect(() => {
+                enemies.forEach(e => {
+                    if (e.r === 13 && e.c === pos) setGameOver(true);
+                });
+            }, [enemies, pos]);
+
+            useEffect(() => {
+                const handleKey = (e) => {
+                    if (e.key === 'ArrowLeft') setPos(p => Math.max(0, p - 1));
+                    if (e.key === 'ArrowRight') setPos(p => Math.min(4, p + 1));
+                };
+                window.addEventListener('keydown', handleKey);
+                return () => window.removeEventListener('keydown', handleKey);
+            }, []);
+
+            if (gameOver) return (
+                <div className="flex-1 bg-black text-red-500 flex flex-col items-center justify-center font-mono">
+                    <h2 className="text-2xl mb-4">GAME OVER</h2>
+                    <p className="mb-4">Score: {score}</p>
+                    <button className="px-4 py-2 border border-red-500" onClick={() => { setGameOver(false); setEnemies([]); setScore(0); }}>RESTART</button>
+                </div>
+            );
+
+            return (
+                <div className="flex-1 bg-black text-green-500 flex flex-col items-center justify-center font-mono p-4 overflow-hidden select-none">
+                    <div className="mb-2 text-xs">SCORE: {score} | USE ARROWS</div>
+                    <div className="border-x border-green-900 px-4 leading-none">
+                        {Array.from({ length: 15 }).map((_, r) => (
+                            <div key={r} className="flex">
+                                {Array.from({ length: 5 }).map((_, c) => (
+                                    <span key={c} className="w-6 h-4 text-center">
+                                        {r === 13 && c === pos ? '▲' : enemies.find(e => e.r === r && e.c === c) ? '█' : ' '}
+                                    </span>
+                                ))}
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            );
+        }
+
+        function ContactForm() {
+            const [status, setStatus] = useState('Send');
+            const handleSubmit = (e) => {
+                e.preventDefault();
+                setStatus('Sending...');
+                setTimeout(() => { setStatus('Sent!'); setTimeout(() => setStatus('Send'), 3000); }, 1500);
+            };
+            return (
+                <form className="p-4 bg-gray-200 text-black flex-1 flex flex-col gap-3 overflow-y-auto" onSubmit={handleSubmit}>
+                    <div className="field-row-stacked">
+                        <label>To:</label>
+                        <input type="text" value="kartavyadev3@gmail.com" readOnly />
+                    </div>
+                    <div className="field-row-stacked">
+                        <label>Subject:</label>
+                        <input type="text" placeholder="Inquiry from Portfolio" />
+                    </div>
+                    <div className="field-row-stacked flex-1 flex flex-col">
+                        <label>Message:</label>
+                        <textarea className="flex-1" placeholder="Type your message here..."></textarea>
+                    </div>
+                    <div className="flex justify-end">
+                        <button type="submit" className="px-6 py-1">{status}</button>
+                    </div>
+                </form>
+            );
+        }
+
+        function Desktop({ onIconClick }) {
+            const icons = [
+                { id: 'about', label: 'About_Me.txt', icon: 'file-text', color: 'text-blue-500' },
+                { id: 'projects', label: 'Projects.exe', icon: 'folder', color: 'text-yellow-500' },
+                { id: 'cmd', label: 'Terminal.exe', icon: 'terminal', color: 'text-green-500' },
+                { id: 'contact', label: 'Mail.lnk', icon: 'mail', color: 'text-red-500' },
+                { id: 'game', label: 'Racer.exe', icon: 'gamepad-2', color: 'text-purple-500' }
+            ];
+
+            return (
+                <div className="p-4 grid grid-flow-col grid-rows-[repeat(auto-fill,100px)] gap-4 h-[calc(100vh-40px)] w-full">
+                    {icons.map(icon => (
+                        <div key={icon.id} className="desktop-icon cursor-pointer" onClick={() => onIconClick(icon.id)}>
+                            <i data-lucide={icon.icon} className={`${icon.color} w-10 h-10 pointer-events-none`}></i>
+                            <span className="text-sm pointer-events-none">{icon.label}</span>
+                        </div>
+                    ))}
+                </div>
+            );
+        }
+
+        function App() {
+            const [booting, setBooting] = useState(true);
+            const [theme, setTheme] = useState('dark');
+            const [windows, setWindows] = useState(INITIAL_WINDOWS);
+            const [maxZ, setMaxZ] = useState(20);
+
+            useEffect(() => {
+                if (window.lucide) lucide.createIcons();
+            }, [booting, windows]);
+
+            const openWindow = (id) => {
+                const existing = windows.find(w => w.id === id);
+                if (existing) {
+                    setWindows(prev => prev.map(win => 
+                        win.id === id ? { ...win, isOpen: true, isMinimized: false, zIndex: maxZ + 1 } : win
+                    ));
+                } else {
+                    let newWin = { id, title: id, isOpen: true, isMinimized: false, zIndex: maxZ + 1, x: 50 + (windows.length * 30), y: 50 + (windows.length * 20), width: 500, height: 400 };
+                    if (id === 'projects') { newWin.title = 'Projects.exe'; newWin.type = 'explorer'; }
+                    if (id === 'about') { newWin.title = 'About_Me.txt'; newWin.type = 'notepad'; newWin.content = "I am Kartavya Dev, a 3rd-year B.Tech student at SCET, Surat. I specialize in AI and Software Development. I love building tools that solve real-world problems using cutting-edge technology."; }
+                    if (id === 'contact') { newWin.title = 'Mail - New Message'; newWin.type = 'contact'; newWin.width = 400; newWin.height = 450; }
+                    if (id === 'game') { newWin.title = 'Racer.exe'; newWin.type = 'game'; newWin.width = 300; newWin.height = 450; }
+                    if (id === 'cmd') { newWin.title = 'C:\\WINDOWS\\system32\\cmd.exe'; newWin.type = 'cmd'; }
+                    setWindows(prev => [...prev, newWin]);
+                }
+                setMaxZ(maxZ + 1);
+            };
+
+            const closeWindow = (id) => {
+                setWindows(prev => prev.map(win => win.id === id ? { ...win, isOpen: false } : win));
+            };
+
+            const minimizeWindow = (id) => {
+                setWindows(prev => prev.map(win => win.id === id ? { ...win, isMinimized: true } : win));
+            };
+
+            const focusWindow = (id) => {
+                setWindows(prev => prev.map(win => win.id === id ? { ...win, isMinimized: false, zIndex: maxZ + 1 } : win));
+                setMaxZ(maxZ + 1);
+            };
+
+            if (booting) return <BiosBoot onComplete={() => setBooting(false)} />;
+
+            return (
+                <div className={`${theme}-theme h-screen w-screen relative overflow-hidden`}>
+                    <Desktop onIconClick={openWindow} />
+                    
+                    <AnimatePresence>
+                        {windows.map(win => win.isOpen && (
+                            <Window 
+                                key={win.id} 
+                                win={win} 
+                                theme={theme}
+                                onClose={closeWindow} 
+                                onMinimize={minimizeWindow}
+                                onFocus={() => focusWindow(win.id)}
+                            >
+                                {win.type === 'cmd' && <CmdApp />}
+                                {win.type === 'notepad' && <NotepadApp content={win.content} />}
+                                {win.type === 'explorer' && <ExplorerApp />}
+                                {win.type === 'contact' && <ContactForm />}
+                                {win.type === 'game' && <AsciiGame />}
+                            </Window>
+                        ))}
+                    </AnimatePresence>
+
+                    <Taskbar 
+                        windows={windows} 
+                        theme={theme} 
+                        toggleTheme={() => setTheme(t => t === 'dark' ? 'light' : 'dark')}
+                        onWindowClick={(id) => {
+                            const win = windows.find(w => w.id === id);
+                            if (win.isMinimized) focusWindow(id);
+                            else minimizeWindow(id);
+                        }}
+                        onStartOpen={() => openWindow('cmd')}
+                    />
+                    
+                    {/* Pixel Rain Layer for Dark Theme */}
+                    {theme === 'dark' && <PixelRain theme={theme} />}
+                </div>
+            );
+        }
+
+        function PixelRain({ theme }) {
+            const canvasRef = useRef(null);
+            useEffect(() => {
+                const canvas = canvasRef.current;
                 const ctx = canvas.getContext('2d');
                 let w = canvas.width = window.innerWidth;
                 let h = canvas.height = window.innerHeight;
-
-                const handleResize = () => {
-                    w = canvas.width = window.innerWidth;
-                    h = canvas.height = window.innerHeight;
-                };
-
-                const handleMouseMove = (e) => {
-                    mousePosRef.current = { x: e.clientX, y: e.clientY };
-                };
                 
-                const handleMouseLeave = () => {
-                    mousePosRef.current = null;
-                };
-
-                window.addEventListener('resize', handleResize);
-                window.addEventListener('mousemove', handleMouseMove);
-                window.addEventListener('mouseleave', handleMouseLeave);
-
-                const darkColors = ['#4ade80', '#00ffcc', '#b0c4de'];
-                const lightColors = ['#000000', '#000080', '#555555'];
-                const maxParticles = 1500; // Max particles
-
-                const createParticle = (xPos, colorList) => {
-                    return {
-                        x: xPos || Math.random() * w,
-                        y: 0,
-                        size: Math.random() * 2 + 1, // 1 to 3
-                        speed: Math.random() * 1.5 + 0.5, // 0.5 to 2.0
-                        color: colorList[Math.floor(Math.random() * colorList.length)]
-                    };
-                };
+                const columns = Math.floor(w / 20);
+                const drops = new Array(columns).fill(1);
 
                 const draw = () => {
-                    // Check body class directly to get the current theme
-                    const isDarkTheme = document.body.classList.contains('dark-theme');
-                    const particleColors = isDarkTheme ? darkColors : lightColors;
-                    // Use theme-appropriate background color for the fading effect
-                    const bgColor = isDarkTheme ? 'rgba(26, 26, 26, 0.1)' : 'rgba(184, 184, 184, 0.1)';
-
-                    ctx.fillStyle = bgColor;
+                    ctx.fillStyle = 'rgba(26, 26, 26, 0.05)';
                     ctx.fillRect(0, 0, w, h);
+                    ctx.fillStyle = '#0f0';
+                    ctx.font = '15px monospace';
 
-                    // Update & Draw Particles
-                    for (let i = particlesRef.current.length - 1; i >= 0; i--) {
-                        const p = particlesRef.current[i];
-                        p.y += p.speed;
-                        
-                        if (p.y > h) {
-                            particlesRef.current.splice(i, 1);
-                        } else {
-                            ctx.fillStyle = p.color;
-                            ctx.fillRect(p.x, p.y, p.size, p.size);
-                        }
+                    for (let i = 0; i < drops.length; i++) {
+                        const text = String.fromCharCode(Math.random() * 128);
+                        ctx.fillText(text, i * 20, drops[i] * 20);
+                        if (drops[i] * 20 > h && Math.random() > 0.975) drops[i] = 0;
+                        drops[i]++;
                     }
-
-                    // Create new particles (if not at cap)
-                    if (particlesRef.current.length < maxParticles) {
-                        // Base Rain (20% chance per frame)
-                        if (Math.random() > 0.8) {
-                            particlesRef.current.push(createParticle(null, particleColors));
-                        }
-                        
-                        // Hover Rain (20% chance per frame)
-                        if (mousePosRef.current && Math.random() > 0.8) { 
-                            particlesRef.current.push(createParticle(
-                                mousePosRef.current.x + (Math.random() - 0.5) * 60, // 60px band
-                                particleColors
-                            ));
-                        }
-                    }
-                    
-                    animationFrameRef.current = requestAnimationFrame(draw);
                 };
 
-                draw();
+                const interval = setInterval(draw, 33);
+                return () => clearInterval(interval);
+            }, []);
 
-                return () => {
-                    cancelAnimationFrame(animationFrameRef.current);
-                    window.removeEventListener('resize', handleResize);
-                    window.removeEventListener('mousemove', handleMouseMove);
-                    window.removeEventListener('mouseleave', handleMouseLeave);
-                };
-            }, []); // Runs only once on component mount
-
-            
-            // This effect *updates the body class* and *canvas opacity*
-            useEffect(() => {
-                document.body.className = `${theme}-theme`;
-                
-                // Set canvas opacity based on theme
-                const canvas = document.getElementById('pixel-rain-canvas');
-                if (canvas) {
-                    canvas.style.opacity = theme === 'dark' ? '0.3' : '0.5';
-                }
-            }, [theme]);
-
-            const toggleTheme = () => {
-                setTheme(current => (current === 'dark' ? 'light' : 'dark'));
-            };
-
-            return (
-                <Fragment>
-                    <NavBar toggleTheme={toggleTheme} theme={theme} />
-                    <div className="container mx-auto max-w-7xl relative z-10">
-                        <Hero />
-                        <main>
-                            <About />
-                            <Projects />
-                            <Achievements />
-                            <Contact />
-                        </main>
-                        {/* MODIFIED: Responsive font size */}
-                        <footer className="text-center p-6"><p className="footer-text text-base md:text-lg">© 2025 Kartavya Dev | Thanks for reaching till the end of page</p></footer>
-                    </div>
-                </Fragment>
-            );
+            return <canvas ref={canvasRef} className="fixed inset-0 pointer-events-none opacity-20 z-0" />;
         }
-        // --- END MODIFIED Component ---
 
-
-        const root = ReactDOM.createRoot(document.getElementById('root'));
-        root.render(<App />);
+        try {
+            const root = ReactDOM.createRoot(document.getElementById('root'));
+            root.render(<App />);
+        } catch (e) {
+            const display = document.getElementById('error-display');
+            if (display) {
+                display.style.display = 'block';
+                display.textContent = `RENDER ERROR: ${e.message}\nStack: ${e.stack}`;
+            }
+        }
     </script>
-
 </body>
 </html>
