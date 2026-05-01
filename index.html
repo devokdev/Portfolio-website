@@ -1,10 +1,11 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Portfolio - Kartavya Dev</title>
-    
+
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
@@ -17,8 +18,7 @@
     <script src="https://cdn.jsdelivr.net/npm/framer-motion@10.16.4/dist/framer-motion.js"></script>
     <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
 
-    <script type="text/javascript"
-        src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js">
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js">
     </script>
     <style>
         /* Base Body & Layout */
@@ -29,9 +29,12 @@
 
         body {
             font-family: 'VT323', monospace;
-            cursor: auto; /* Fallback to standard cursor for better compatibility */
-            overflow: hidden; /* Desktop doesn't scroll, windows do */
-            background-color: #008080; /* Classic Windows Teal */
+            cursor: auto;
+            /* Fallback to standard cursor for better compatibility */
+            overflow: hidden;
+            /* Desktop doesn't scroll, windows do */
+            background-color: #008080;
+            /* Classic Windows Teal */
             height: 100vh;
             width: 100vw;
             margin: 0;
@@ -57,37 +60,131 @@
         /* --- CRT EFFECT LAYER --- */
         #crt-overlay {
             position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
             pointer-events: none !important;
             z-index: 9999;
-            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.1) 50%), 
-                        linear-gradient(90deg, rgba(255, 0, 0, 0.03), rgba(0, 255, 0, 0.01), rgba(0, 0, 255, 0.03));
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.1) 50%),
+                linear-gradient(90deg, rgba(255, 0, 0, 0.03), rgba(0, 255, 0, 0.01), rgba(0, 0, 255, 0.03));
             background-size: 100% 3px, 3px 100%;
             opacity: 0.8;
         }
 
         #crt-vignette {
             position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
             pointer-events: none !important;
             z-index: 9998;
-            background: radial-gradient(circle, transparent 60%, rgba(0,0,0,0.4) 100%);
-            box-shadow: inset 0 0 100px rgba(0,0,0,0.5);
+            background: radial-gradient(circle, transparent 60%, rgba(0, 0, 0, 0.4) 100%);
+            box-shadow: inset 0 0 100px rgba(0, 0, 0, 0.5);
         }
 
         /* Flicker Animation */
         @keyframes flicker {
-            0% { opacity: 0.97; } 5% { opacity: 0.95; } 10% { opacity: 0.9; } 15% { opacity: 0.95; }
-            20% { opacity: 0.9; } 25% { opacity: 0.98; } 30% { opacity: 0.95; } 35% { opacity: 0.9; }
-            40% { opacity: 0.95; } 45% { opacity: 0.9; } 50% { opacity: 0.98; } 55% { opacity: 0.95; }
-            60% { opacity: 0.9; } 65% { opacity: 0.95; } 70% { opacity: 0.9; } 75% { opacity: 0.98; }
-            80% { opacity: 0.95; } 85% { opacity: 0.9; } 90% { opacity: 0.95; } 95% { opacity: 0.9; } 100% { opacity: 0.98; }
+            0% {
+                opacity: 0.97;
+            }
+
+            5% {
+                opacity: 0.95;
+            }
+
+            10% {
+                opacity: 0.9;
+            }
+
+            15% {
+                opacity: 0.95;
+            }
+
+            20% {
+                opacity: 0.9;
+            }
+
+            25% {
+                opacity: 0.98;
+            }
+
+            30% {
+                opacity: 0.95;
+            }
+
+            35% {
+                opacity: 0.9;
+            }
+
+            40% {
+                opacity: 0.95;
+            }
+
+            45% {
+                opacity: 0.9;
+            }
+
+            50% {
+                opacity: 0.98;
+            }
+
+            55% {
+                opacity: 0.95;
+            }
+
+            60% {
+                opacity: 0.9;
+            }
+
+            65% {
+                opacity: 0.95;
+            }
+
+            70% {
+                opacity: 0.9;
+            }
+
+            75% {
+                opacity: 0.98;
+            }
+
+            80% {
+                opacity: 0.95;
+            }
+
+            85% {
+                opacity: 0.9;
+            }
+
+            90% {
+                opacity: 0.95;
+            }
+
+            95% {
+                opacity: 0.9;
+            }
+
+            100% {
+                opacity: 0.98;
+            }
         }
-        .crt-flicker { animation: flicker 0.15s infinite; }
+
+        .crt-flicker {
+            animation: flicker 0.15s infinite;
+        }
 
         /* --- THEMES --- */
-        .dark-theme { background-color: #1a1a1a; color: #b0c4de; }
-        .light-theme { background-color: #008080; color: #000; }
+        .dark-theme {
+            background-color: #1a1a1a;
+            color: #b0c4de;
+        }
+
+        .light-theme {
+            background-color: #008080;
+            color: #000;
+        }
 
         /* Window Styling */
         .window {
@@ -115,7 +212,10 @@
             justify-content: space-between;
             align-items: center;
         }
-        .title-bar:active { cursor: grabbing; }
+
+        .title-bar:active {
+            cursor: grabbing;
+        }
 
         .dark-theme .title-bar {
             background: linear-gradient(90deg, #000050, #0a528d);
@@ -135,11 +235,14 @@
             transition: background 0.2s;
             border: 1px solid transparent;
         }
+
         .desktop-icon:hover {
             background: rgba(255, 255, 255, 0.1);
             border: 1px dotted white;
         }
-        .desktop-icon img, .desktop-icon i {
+
+        .desktop-icon img,
+        .desktop-icon i {
             width: 32px;
             height: 32px;
             margin-bottom: 4px;
@@ -148,7 +251,9 @@
         /* Taskbar */
         .taskbar {
             position: fixed;
-            bottom: 0; left: 0; width: 100%;
+            bottom: 0;
+            left: 0;
+            width: 100%;
             height: 40px;
             background: #c0c0c0;
             border-top: 2px solid white;
@@ -158,6 +263,7 @@
             z-index: 1000;
             box-shadow: inset 1px 1px 0px 1px #ffffff;
         }
+
         .dark-theme .taskbar {
             background: #111;
             border-top: 2px solid #00ffcc;
@@ -204,27 +310,66 @@
             overflow: hidden;
             font-size: 18px;
         }
-        .bios-line { margin-bottom: 4px; white-space: pre-wrap; }
-        .bios-cursor { display: inline-block; width: 10px; height: 20px; background: #ccc; animation: blink 1s infinite; }
 
-        @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
+        .bios-line {
+            margin-bottom: 4px;
+            white-space: pre-wrap;
+        }
+
+        .bios-cursor {
+            display: inline-block;
+            width: 10px;
+            height: 20px;
+            background: #ccc;
+            animation: blink 1s infinite;
+        }
+
+        @keyframes blink {
+
+            0%,
+            100% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: 0;
+            }
+        }
 
         /* Scrollbars */
-        ::-webkit-scrollbar { width: 16px; height: 16px; }
-        ::-webkit-scrollbar-track { background: #dfdfdf; box-shadow: inset 1px 1px #808080; }
-        ::-webkit-scrollbar-thumb { 
+        ::-webkit-scrollbar {
+            width: 16px;
+            height: 16px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #dfdfdf;
+            box-shadow: inset 1px 1px #808080;
+        }
+
+        ::-webkit-scrollbar-thumb {
             background: #c0c0c0;
             box-shadow: inset 1px 1px #fff, inset -1px -1px #808080, 1px 1px #000;
         }
+
         ::-webkit-scrollbar-button {
             background: #c0c0c0;
             box-shadow: inset 1px 1px #fff, inset -1px -1px #808080, 1px 1px #000;
-            width: 16px; height: 16px;
+            width: 16px;
+            height: 16px;
         }
 
         /* Animations */
-        .window-enter { opacity: 0; transform: scale(0.9) translateY(20px); }
-        .window-enter-active { opacity: 1; transform: scale(1) translateY(0); transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        .window-enter {
+            opacity: 0;
+            transform: scale(0.9) translateY(20px);
+        }
+
+        .window-enter-active {
+            opacity: 1;
+            transform: scale(1) translateY(0);
+            transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
 
         /* CMD Box Override */
         .cmd-box {
@@ -234,7 +379,13 @@
             padding: 10px;
             overflow-y: auto;
         }
-        .cmd-input-container { display: flex; align-items: center; gap: 4px; }
+
+        .cmd-input-container {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
         .cmd-input {
             background: transparent;
             border: none;
@@ -250,29 +401,49 @@
             position: relative;
             animation: glitch 2s infinite linear alternate-reverse;
         }
+
         @keyframes glitch {
-            0% { text-shadow: 0.05em 0 0 rgba(255,0,0,0.75), -0.05em -0.025em 0 rgba(0,255,0,0.75), -0.025em 0.05em 0 rgba(0,0,255,0.75); }
-            14% { text-shadow: 0.05em 0 0 rgba(255,0,0,0.75), -0.05em -0.025em 0 rgba(0,255,0,0.75), -0.025em 0.05em 0 rgba(0,0,255,0.75); }
-            15% { text-shadow: -0.05em -0.025em 0 rgba(255,0,0,0.75), 0.025em 0.025em 0 rgba(0,255,0,0.75), -0.05em -0.05em 0 rgba(0,0,255,0.75); }
-            49% { text-shadow: -0.05em -0.025em 0 rgba(255,0,0,0.75), 0.025em 0.025em 0 rgba(0,255,0,0.75), -0.05em -0.05em 0 rgba(0,0,255,0.75); }
-            50% { text-shadow: 0.025em 0.05em 0 rgba(255,0,0,0.75), 0.05em 0 0 rgba(0,255,0,0.75), 0 -0.05em 0 rgba(0,0,255,0.75); }
-            99% { text-shadow: 0.025em 0.05em 0 rgba(255,0,0,0.75), 0.05em 0 0 rgba(0,255,0,0.75), 0 -0.05em 0 rgba(0,0,255,0.75); }
-            100% { text-shadow: -0.025em 0 0 rgba(255,0,0,0.75), -0.025em -0.025em 0 rgba(0,255,0,0.75), -0.025em -0.05em 0 rgba(0,0,255,0.75); }
+            0% {
+                text-shadow: 0.05em 0 0 rgba(255, 0, 0, 0.75), -0.05em -0.025em 0 rgba(0, 255, 0, 0.75), -0.025em 0.05em 0 rgba(0, 0, 255, 0.75);
+            }
+
+            14% {
+                text-shadow: 0.05em 0 0 rgba(255, 0, 0, 0.75), -0.05em -0.025em 0 rgba(0, 255, 0, 0.75), -0.025em 0.05em 0 rgba(0, 0, 255, 0.75);
+            }
+
+            15% {
+                text-shadow: -0.05em -0.025em 0 rgba(255, 0, 0, 0.75), 0.025em 0.025em 0 rgba(0, 255, 0, 0.75), -0.05em -0.05em 0 rgba(0, 0, 255, 0.75);
+            }
+
+            49% {
+                text-shadow: -0.05em -0.025em 0 rgba(255, 0, 0, 0.75), 0.025em 0.025em 0 rgba(0, 255, 0, 0.75), -0.05em -0.05em 0 rgba(0, 0, 255, 0.75);
+            }
+
+            50% {
+                text-shadow: 0.025em 0.05em 0 rgba(255, 0, 0, 0.75), 0.05em 0 0 rgba(0, 255, 0, 0.75), 0 -0.05em 0 rgba(0, 0, 255, 0.75);
+            }
+
+            99% {
+                text-shadow: 0.025em 0.05em 0 rgba(255, 0, 0, 0.75), 0.05em 0 0 rgba(0, 255, 0, 0.75), 0 -0.05em 0 rgba(0, 0, 255, 0.75);
+            }
+
+            100% {
+                text-shadow: -0.025em 0 0 rgba(255, 0, 0, 0.75), -0.025em -0.025em 0 rgba(0, 255, 0, 0.75), -0.025em -0.05em 0 rgba(0, 0, 255, 0.75);
+            }
         }
-
-
-</style>
+    </style>
 </head>
+
 <body>
     <div id="crt-overlay"></div>
     <div id="crt-vignette" class="crt-flicker"></div>
     <div id="error-display"></div>
-    
+
     <div id="root"></div>
 
     <script type="text/babel">
         // Global Error Handler for Babel Script
-        window.onerror = function(msg, url, line, col, error) {
+        window.onerror = function (msg, url, line, col, error) {
             const display = document.getElementById('error-display');
             if (display) {
                 display.style.display = 'block';
@@ -315,7 +486,7 @@
 
         // --- APPS & WINDOWS ---
         const INITIAL_WINDOWS = [
-            { id: 'welcome', title: 'Welcome.txt', type: 'notepad', content: 'Welcome to my 10x Portfolio! Feel free to explore my projects, read about me, or play some games. Use the Start menu or desktop icons to get started.', x: 100, y: 100, width: 400, height: 300, isOpen: true, isMinimized: false, zIndex: 10 },
+            { id: 'welcome', title: 'Welcome.txt', type: 'notepad', content: 'Welcome to my Portfolio! Feel free to explore my projects, read about me, or play some games. Use the Start menu or desktop icons to get started.', x: 100, y: 100, width: 400, height: 300, isOpen: true, isMinimized: false, zIndex: 10 },
             { id: 'cmd', title: 'C:\\WINDOWS\\system32\\cmd.exe', type: 'cmd', x: 150, y: 150, width: 600, height: 400, isOpen: false, isMinimized: false, zIndex: 11 },
         ];
 
@@ -364,11 +535,11 @@
                     initial={{ scale: 0.9, opacity: 0 }}
                     animate={{ scale: 1, opacity: 1 }}
                     exit={{ scale: 0.9, opacity: 0 }}
-                    style={{ 
-                        zIndex: win.zIndex, 
-                        left: win.x, 
-                        top: win.y, 
-                        width: win.width, 
+                    style={{
+                        zIndex: win.zIndex,
+                        left: win.x,
+                        top: win.y,
+                        width: win.width,
                         height: win.height,
                         display: win.isMinimized ? 'none' : 'flex'
                     }}
@@ -406,7 +577,7 @@
                 if (e.key === 'Enter') {
                     const cmd = input.trim().toLowerCase();
                     let response = [];
-                    
+
                     if (cmd === 'help') {
                         response = ["Available commands:", "  help     - Show this help", "  ls       - List projects/files", "  clear    - Clear screen", "  whoami   - About Kartavya", "  neofetch - System stats", "  exit     - Close terminal"];
                     } else if (cmd === 'ls') {
@@ -448,10 +619,10 @@
                         {history.map((line, i) => <div key={i}>{line}</div>)}
                         <div className="cmd-input-container">
                             <span>C:\Users\Kartavya&gt;</span>
-                            <input 
-                                autoFocus 
-                                className="cmd-input" 
-                                value={input} 
+                            <input
+                                autoFocus
+                                className="cmd-input"
+                                value={input}
                                 onChange={(e) => setInput(e.target.value)}
                                 onKeyDown={handleCommand}
                             />
@@ -480,8 +651,8 @@
 
         function NotepadApp({ content }) {
             return (
-                <textarea 
-                    readOnly 
+                <textarea
+                    readOnly
                     className="flex-1 p-2 outline-none resize-none font-mono text-base bg-white text-black"
                     value={content}
                 />
@@ -490,7 +661,7 @@
 
         function Taskbar({ windows, onStartOpen, onWindowClick, theme, toggleTheme }) {
             const [time, setTime] = useState(new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }));
-            
+
             useEffect(() => {
                 const timer = setInterval(() => {
                     setTime(new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }));
@@ -507,8 +678,8 @@
                     <div className="taskbar-divider"></div>
                     <div className="flex gap-1 overflow-x-auto">
                         {windows.map(win => win.isOpen && (
-                            <button 
-                                key={win.id} 
+                            <button
+                                key={win.id}
                                 className={`px-2 h-8 min-w-[100px] text-left truncate cursor-pointer ${!win.isMinimized ? 'active' : ''}`}
                                 onClick={() => onWindowClick(win.id)}
                             >
@@ -649,7 +820,7 @@
             const openWindow = (id) => {
                 const existing = windows.find(w => w.id === id);
                 if (existing) {
-                    setWindows(prev => prev.map(win => 
+                    setWindows(prev => prev.map(win =>
                         win.id === id ? { ...win, isOpen: true, isMinimized: false, zIndex: maxZ + 1 } : win
                     ));
                 } else {
@@ -682,14 +853,14 @@
             return (
                 <div className={`${theme}-theme h-screen w-screen relative overflow-hidden`}>
                     <Desktop onIconClick={openWindow} />
-                    
+
                     <AnimatePresence>
                         {windows.map(win => win.isOpen && (
-                            <Window 
-                                key={win.id} 
-                                win={win} 
+                            <Window
+                                key={win.id}
+                                win={win}
                                 theme={theme}
-                                onClose={closeWindow} 
+                                onClose={closeWindow}
                                 onMinimize={minimizeWindow}
                                 onFocus={() => focusWindow(win.id)}
                             >
@@ -702,9 +873,9 @@
                         ))}
                     </AnimatePresence>
 
-                    <Taskbar 
-                        windows={windows} 
-                        theme={theme} 
+                    <Taskbar
+                        windows={windows}
+                        theme={theme}
                         toggleTheme={() => setTheme(t => t === 'dark' ? 'light' : 'dark')}
                         onWindowClick={(id) => {
                             const win = windows.find(w => w.id === id);
@@ -713,7 +884,7 @@
                         }}
                         onStartOpen={() => openWindow('cmd')}
                     />
-                    
+
                     {/* Pixel Rain Layer for Dark Theme */}
                     {theme === 'dark' && <PixelRain theme={theme} />}
                 </div>
@@ -727,7 +898,7 @@
                 const ctx = canvas.getContext('2d');
                 let w = canvas.width = window.innerWidth;
                 let h = canvas.height = window.innerHeight;
-                
+
                 const columns = Math.floor(w / 20);
                 const drops = new Array(columns).fill(1);
 
@@ -764,4 +935,5 @@
         }
     </script>
 </body>
+
 </html>
